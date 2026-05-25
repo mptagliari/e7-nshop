@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<!-- SheetJS para gerar XLSX no browser -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root {
     --bg:        #f5f3ef;
@@ -86,7 +88,6 @@
     color: var(--text);
     margin-bottom: 12px;
   }
-
   .hero h1 .slash { color: var(--accent); margin: 0 4px; }
   .hero h1 .dest  { color: var(--accent2); }
 
@@ -104,7 +105,6 @@
     align-items: center;
     gap: 8px;
   }
-
   .pill {
     padding: 4px 12px;
     border-radius: 100px;
@@ -116,7 +116,6 @@
   .pill.a  { border-color: #e0a882; color: var(--accent);  background: var(--accent-bg); }
   .pill.b  { border-color: #d4c070; color: var(--accent2); background: var(--accent2-bg); }
   .pill.c  { border-color: #8ecba8; color: var(--success); background: var(--success-bg); }
-
   .arrow { color: var(--muted); font-size: 13px; }
 
   /* CARD */
@@ -155,29 +154,23 @@
   }
   .card-sub { font-size: 11px; color: var(--muted); line-height: 1.5; }
 
-  /* PAGE COUNT INPUT */
+  /* PAGE COUNT */
   .page-count-row {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     margin-bottom: 20px;
+    flex-wrap: wrap;
   }
-
-  .page-count-row label {
-    font-size: 12px;
-    color: var(--text2);
-    white-space: nowrap;
-  }
-
+  .page-count-row label { font-size: 12px; color: var(--text2); white-space: nowrap; }
   .page-count-row input[type=number] {
-    width: 72px;
+    width: 70px;
     background: var(--surface2);
     border: 1px solid var(--border2);
     border-radius: 6px;
     color: var(--text);
     font-family: 'DM Mono', monospace;
-    font-size: 14px;
-    font-weight: 500;
+    font-size: 14px; font-weight: 500;
     padding: 7px 10px;
     outline: none;
     text-align: center;
@@ -187,12 +180,10 @@
 
   .btn-set-pages {
     background: var(--accent);
-    color: #fff;
-    border: none;
+    color: #fff; border: none;
     border-radius: 6px;
     font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 12px;
+    font-weight: 700; font-size: 12px;
     padding: 8px 16px;
     cursor: pointer;
     transition: background 0.15s;
@@ -210,12 +201,10 @@
     margin-bottom: 12px;
     flex-wrap: wrap;
   }
-
   .tab {
     flex: 1;
-    min-width: 80px;
-    background: transparent;
-    border: none;
+    min-width: 76px;
+    background: transparent; border: none;
     border-radius: 5px;
     color: var(--muted);
     font-family: 'DM Mono', monospace;
@@ -224,19 +213,14 @@
     cursor: pointer;
     transition: all 0.15s;
     white-space: nowrap;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
   }
   .tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
   .tab .dot {
     width: 5px; height: 5px;
     border-radius: 50%;
     background: var(--success);
-    opacity: 0;
-    transition: opacity 0.2s;
-    flex-shrink: 0;
+    opacity: 0; transition: opacity 0.2s; flex-shrink: 0;
   }
   .tab.filled .dot { opacity: 1; }
 
@@ -253,8 +237,7 @@
     font-family: 'DM Mono', monospace;
     font-size: 11px;
     padding: 13px;
-    resize: vertical;
-    outline: none;
+    resize: vertical; outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
     line-height: 1.6;
     min-height: 110px;
@@ -287,17 +270,15 @@
   /* DEFAULTS GRID */
   .defaults-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4,1fr);
     gap: 12px;
   }
   @media (max-width: 580px) { .defaults-grid { grid-template-columns: repeat(2,1fr); } }
 
   .field { display: flex; flex-direction: column; gap: 5px; }
   .field label {
-    font-size: 10px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    font-size: 10px; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 1px;
   }
   .field input, .field select {
     background: var(--surface2);
@@ -306,11 +287,9 @@
     color: var(--text);
     font-family: 'DM Mono', monospace;
     font-size: 12px;
-    padding: 8px 10px;
-    outline: none;
+    padding: 8px 10px; outline: none;
     transition: border-color 0.2s;
-    width: 100%;
-    -webkit-appearance: none;
+    width: 100%; -webkit-appearance: none;
   }
   .field input:focus, .field select:focus {
     border-color: var(--accent2);
@@ -322,15 +301,11 @@
   /* BUTTONS */
   .btn-run {
     width: 100%;
-    background: var(--accent);
-    color: #fff;
-    border: none;
+    background: var(--accent); color: #fff; border: none;
     border-radius: 7px;
     font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 15px;
-    padding: 16px;
-    cursor: pointer;
+    font-weight: 800; font-size: 15px;
+    padding: 16px; cursor: pointer;
     letter-spacing: 0.3px;
     transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
     box-shadow: 0 4px 18px rgba(200,90,30,0.22);
@@ -339,41 +314,48 @@
   .btn-run:active { transform: scale(0.997); }
   .btn-run:disabled { background: var(--muted); box-shadow: none; cursor: not-allowed; }
 
-  .btn-download {
-    width: 100%;
-    background: transparent;
-    color: var(--success);
-    border: 1.5px solid var(--success);
-    border-radius: 7px;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 14px;
-    padding: 14px;
-    cursor: pointer;
-    transition: all 0.2s;
+  /* DOWNLOAD BUTTONS */
+  .download-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
     margin-top: 16px;
+  }
+  @media (max-width: 480px) { .download-row { grid-template-columns: 1fr; } }
+
+  .btn-dl {
+    width: 100%; border-radius: 7px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700; font-size: 13px;
+    padding: 13px 10px; cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: all 0.2s;
     display: none;
   }
-  .btn-download:hover {
-    background: var(--success);
-    color: #fff;
-    box-shadow: 0 4px 16px rgba(46,125,82,0.2);
+
+  .btn-dl-xlsx {
+    background: var(--success); color: #fff; border: none;
+    box-shadow: 0 3px 14px rgba(46,125,82,0.22);
   }
+  .btn-dl-xlsx:hover { background: #236040; box-shadow: 0 4px 18px rgba(46,125,82,0.32); }
+
+  .btn-dl-csv {
+    background: transparent;
+    color: var(--accent2);
+    border: 1.5px solid var(--accent2);
+  }
+  .btn-dl-csv:hover { background: var(--accent2); color: #fff; }
 
   /* PROGRESS */
   .progress-bar {
-    height: 3px;
-    background: var(--border);
-    border-radius: 2px;
-    overflow: hidden;
-    margin-bottom: 18px;
-    display: none;
+    height: 3px; background: var(--border);
+    border-radius: 2px; overflow: hidden;
+    margin-bottom: 18px; display: none;
   }
   .progress-fill {
     height: 100%;
     background: linear-gradient(90deg, var(--accent), var(--accent2));
-    border-radius: 2px;
-    width: 0%;
+    border-radius: 2px; width: 0%;
     transition: width 0.35s ease;
   }
 
@@ -381,51 +363,31 @@
   #resultCard { display: none; }
 
   .stats-row {
-    display: grid;
-    grid-template-columns: repeat(4,1fr);
-    gap: 1px;
-    background: var(--border);
+    display: grid; grid-template-columns: repeat(4,1fr);
+    gap: 1px; background: var(--border);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    overflow: hidden;
+    border-radius: 8px; overflow: hidden;
     margin-bottom: 16px;
   }
-  .stat-cell {
-    background: var(--surface2);
-    padding: 14px 10px;
-    text-align: center;
-  }
+  .stat-cell { background: var(--surface2); padding: 14px 10px; text-align: center; }
   .stat-num {
     font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 26px;
-    line-height: 1;
-    display: block;
-    margin-bottom: 4px;
-    color: var(--text);
+    font-weight: 800; font-size: 26px;
+    line-height: 1; display: block;
+    margin-bottom: 4px; color: var(--text);
   }
   .stat-num.g { color: var(--success); }
   .stat-num.o { color: var(--accent2); }
   .stat-num.r { color: var(--error); }
-  .stat-lbl {
-    font-size: 10px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
+  .stat-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
 
   /* LOG */
   .log-box {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    padding: 12px 14px;
-    font-size: 11px;
-    max-height: 130px;
-    overflow-y: auto;
-    line-height: 2;
-    display: none;
-    margin-bottom: 16px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 7px; padding: 12px 14px;
+    font-size: 11px; max-height: 130px;
+    overflow-y: auto; line-height: 2;
+    display: none; margin-bottom: 16px;
   }
   .log-ok   { color: var(--success); }
   .log-warn { color: var(--accent2); }
@@ -434,62 +396,38 @@
 
   /* TABLE */
   .table-wrapper {
-    overflow-x: auto;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    display: none;
+    overflow-x: auto; border: 1px solid var(--border);
+    border-radius: 8px; display: none;
   }
   table { width: 100%; border-collapse: collapse; font-size: 11px; }
   thead th {
-    background: var(--surface2);
-    color: var(--muted);
-    text-align: left;
-    padding: 9px 12px;
-    font-weight: 500;
-    font-size: 10px;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
-    white-space: nowrap;
-    border-bottom: 1px solid var(--border);
+    background: var(--surface2); color: var(--muted);
+    text-align: left; padding: 9px 12px;
+    font-weight: 500; font-size: 10px;
+    letter-spacing: 0.8px; text-transform: uppercase;
+    white-space: nowrap; border-bottom: 1px solid var(--border);
   }
   tbody td {
-    padding: 9px 12px;
-    border-bottom: 1px solid var(--border);
-    color: var(--text2);
-    max-width: 220px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    padding: 9px 12px; border-bottom: 1px solid var(--border);
+    color: var(--text2); max-width: 220px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   tbody tr:last-child td { border-bottom: none; }
   tbody tr:hover td { background: var(--surface2); color: var(--text); }
 
-  .tag {
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 100px;
-    font-family: 'DM Mono', monospace;
-  }
+  .tag { font-size: 10px; padding: 2px 8px; border-radius: 100px; font-family: 'DM Mono', monospace; }
   .tv { background: var(--success-bg); color: var(--success); }
   .te { background: var(--accent2-bg); color: var(--accent2); }
   .tx { background: var(--error-bg);   color: var(--error); }
 
-  .more-row td {
-    text-align: center;
-    color: var(--muted);
-    font-style: italic;
-    padding: 10px;
-  }
+  .more-row td { text-align: center; color: var(--muted); font-style: italic; padding: 10px; }
 
   /* FOOTER */
   .footer {
-    margin-top: 56px;
-    padding-top: 24px;
+    margin-top: 56px; padding-top: 24px;
     border-top: 1px solid var(--border);
-    text-align: center;
-    font-size: 11px;
-    color: var(--muted);
-    line-height: 2.2;
+    text-align: center; font-size: 11px;
+    color: var(--muted); line-height: 2.2;
   }
   .footer a { color: var(--accent); text-decoration: none; }
   .footer a:hover { text-decoration: underline; }
@@ -507,14 +445,14 @@
     <div class="eyebrow">Ferramenta de Migração</div>
     <h1>Elo7<span class="slash">/</span><span class="dest">Nuvemshop</span></h1>
     <p class="hero-sub">
-      Cole o código-fonte das páginas da sua lista de produtos da Elo7 e gere automaticamente um CSV pronto para importar na Nuvemshop.
+      Cole o código-fonte das páginas da sua lista de produtos da Elo7 e gere automaticamente uma planilha ou CSV pronto para importar na Nuvemshop.
     </p>
     <div class="flow-pills">
       <span class="pill a">HTML da Elo7</span>
       <span class="arrow">→</span>
       <span class="pill">Extração automática</span>
       <span class="arrow">→</span>
-      <span class="pill b">CSV formatado</span>
+      <span class="pill b">XLSX / CSV</span>
       <span class="arrow">→</span>
       <span class="pill c">Nuvemshop ✓</span>
     </div>
@@ -618,7 +556,7 @@
   </div>
 
   <button class="btn-run" id="btnRun" onclick="processar()">
-    ⚡ Extrair produtos e gerar CSV
+    ⚡ Extrair produtos
   </button>
 
   <!-- RESULTADO -->
@@ -668,14 +606,19 @@
       </table>
     </div>
 
-    <button class="btn-download" id="btnDownload" onclick="baixarCSV()">
-      ⬇ Baixar CSV — pronto para Nuvemshop
-    </button>
+    <div class="download-row">
+      <button class="btn-dl btn-dl-xlsx" id="btnXlsx" onclick="baixarXLSX()">
+        ⬇ Baixar planilha .xlsx
+      </button>
+      <button class="btn-dl btn-dl-csv" id="btnCsv" onclick="baixarCSV()">
+        ⬇ Baixar .csv
+      </button>
+    </div>
   </div>
 
   <footer class="footer">
     Tudo roda no seu navegador — nenhum dado é enviado para servidores.<br>
-    Após importar o CSV, adicione as fotos via
+    Após importar, adicione as fotos via
     <a href="https://www.nuvemshop.com.br/loja-aplicativos-nuvem" target="_blank" rel="noopener">app Automágico</a>
     ou manualmente pelo painel da Nuvemshop.
   </footer>
@@ -686,8 +629,19 @@
   /* ── STATE ── */
   let produtos   = [];
   let csvContent = '';
-  let activeTab  = 1;
+  let wsData     = []; // para xlsx
   let totalPages = 3;
+
+  /* ── COLUNAS ── */
+  const COLS = [
+    'Identificador URL','Nome','Categorias',
+    'Preço','Preço promocional',
+    'Peso','Altura','Largura','Comprimento',
+    'Estoque','SKU',
+    'Exibir na loja','Frete grátis',
+    'Descrição','Marca','Produto físico',
+    'Título para SEO','Descrição para SEO','Tags'
+  ];
 
   /* ── RENDER TABS ── */
   function renderTabs() {
@@ -698,10 +652,9 @@
     const bar    = document.getElementById('tabsBar');
     const panels = document.getElementById('tabPanels');
 
-    // Preserve existing content
     const existing = {};
     bar.querySelectorAll('.tab').forEach(t => {
-      const i = parseInt(t.dataset.page);
+      const i  = parseInt(t.dataset.page);
       const ta = document.getElementById(`html${i}`);
       if (ta) existing[i] = ta.value;
     });
@@ -710,16 +663,15 @@
     panels.innerHTML = '';
 
     for (let i = 1; i <= n; i++) {
-      // tab button
       const btn = document.createElement('button');
-      btn.className   = `tab${i === 1 ? ' active' : ''}`;
+      btn.className    = `tab${i === 1 ? ' active' : ''}`;
       btn.dataset.page = i;
-      btn.id          = `tab-btn-${i}`;
-      btn.onclick     = () => switchTab(i);
-      btn.innerHTML   = `Página ${i} <span class="dot" id="dot${i}"></span>`;
+      btn.id           = `tab-btn-${i}`;
+      btn.onclick      = () => switchTab(i);
+      btn.innerHTML    = `Página ${i} <span class="dot" id="dot${i}"></span>`;
+      if (existing[i]) btn.classList.add('filled');
       bar.appendChild(btn);
 
-      // panel
       const panel = document.createElement('div');
       panel.className = `tab-panel${i === 1 ? ' active' : ''}`;
       panel.id        = `panel${i}`;
@@ -730,17 +682,13 @@
       ta.placeholder = `Cole aqui o código-fonte da página ${i}...`;
       ta.value       = existing[i] || '';
       ta.oninput     = () => markTab(i);
-      if (existing[i]) btn.classList.add('filled');
 
       panel.appendChild(ta);
       panels.appendChild(panel);
     }
-
-    activeTab = 1;
   }
 
   function switchTab(n) {
-    activeTab = n;
     document.querySelectorAll('.tab').forEach(t =>
       t.classList.toggle('active', parseInt(t.dataset.page) === n)
     );
@@ -775,9 +723,9 @@
   /* ── HELPERS ── */
   function slugify(str) {
     return str.toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9\s-]/g, '').trim()
-      .replace(/\s+/g, '-').replace(/-+/g, '-')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-z0-9\s-]/g,'').trim()
+      .replace(/\s+/g,'-').replace(/-+/g,'-')
       .substring(0, 80);
   }
 
@@ -834,6 +782,21 @@
     return out;
   }
 
+  /* ── BUILD ROWS ── */
+  function buildRow(p, defaults) {
+    const { peso, altura, largura, comprimento, marca, fisico, frete, exibir } = defaults;
+    const exibirLoja = p.estoque.tipo === 'esgotado' ? 'NAO' : exibir;
+    return [
+      p.slug, p.nome, '',
+      p.preco, p.precoPromo,
+      peso, altura, largura, comprimento,
+      p.estoque.val, p.webCode,
+      exibirLoja, frete,
+      '', marca, fisico,
+      p.nome, '', ''
+    ];
+  }
+
   /* ── MAIN ── */
   function processar() {
     const btn = document.getElementById('btnRun');
@@ -843,7 +806,8 @@
     clearLog();
     document.getElementById('previewBody').innerHTML    = '';
     document.getElementById('tableWrapper').style.display  = 'none';
-    document.getElementById('btnDownload').style.display   = 'none';
+    document.getElementById('btnXlsx').style.display       = 'none';
+    document.getElementById('btnCsv').style.display        = 'none';
     document.getElementById('resultCard').style.display    = 'none';
 
     const pb = document.getElementById('progressBar');
@@ -868,7 +832,7 @@
       if (paginas === 0) {
         log('⚠  Cole o código-fonte de pelo menos uma página para continuar.', 'err');
         btn.disabled = false;
-        btn.textContent = '⚡ Extrair produtos e gerar CSV';
+        btn.textContent = '⚡ Extrair produtos';
         document.getElementById('resultCard').style.display = 'block';
         pb.style.display = 'none';
         return;
@@ -896,90 +860,105 @@
       document.getElementById('sEncomenda').textContent = encomenda;
       document.getElementById('sEsgotado').textContent  = esgotado;
 
-      const peso        = document.getElementById('dPeso').value;
-      const altura      = document.getElementById('dAltura').value;
-      const largura     = document.getElementById('dLargura').value;
-      const comprimento = document.getElementById('dComprimento').value;
-      const marca       = document.getElementById('dMarca').value;
-      const fisico      = document.getElementById('dFisico').value;
-      const frete       = document.getElementById('dFrete').value;
-      const exibir      = document.getElementById('dExibir').value;
+      const defaults = {
+        peso:        document.getElementById('dPeso').value,
+        altura:      document.getElementById('dAltura').value,
+        largura:     document.getElementById('dLargura').value,
+        comprimento: document.getElementById('dComprimento').value,
+        marca:       document.getElementById('dMarca').value,
+        fisico:      document.getElementById('dFisico').value,
+        frete:       document.getElementById('dFrete').value,
+        exibir:      document.getElementById('dExibir').value,
+      };
 
-      const cols = [
-        'Identificador URL','Nome','Categorias',
-        'Preço','Preço promocional',
-        'Peso','Altura','Largura','Comprimento',
-        'Estoque','SKU',
-        'Exibir na loja','Frete grátis',
-        'Descrição','Marca','Produto físico',
-        'Título para SEO','Descrição para SEO','Tags'
-      ];
+      // Monta dados para xlsx e csv
+      wsData = [COLS, ...produtos.map(p => buildRow(p, defaults))];
 
-      const esc   = v => `"${String(v ?? '').replace(/"/g,'""')}"`;
-      const linhas = [cols.map(esc).join(',')];
-      const tbody  = document.getElementById('previewBody');
+      // CSV
+      const esc    = v => `"${String(v ?? '').replace(/"/g,'""')}"`;
+      csvContent   = '\uFEFF' + wsData.map(r => r.map(esc).join(',')).join('\r\n');
 
-      produtos.forEach((p, i) => {
-        const exibirLoja = p.estoque.tipo === 'esgotado' ? 'NAO' : exibir;
-        linhas.push([
-          p.slug, p.nome, '',
-          p.preco, p.precoPromo,
-          peso, altura, largura, comprimento,
-          p.estoque.val, p.webCode,
-          exibirLoja, frete,
-          '', marca, fisico,
-          p.nome, '', ''
-        ].map(esc).join(','));
+      pf.style.width = '100%';
+      setTimeout(() => { pb.style.display = 'none'; pf.style.width = '0%'; }, 500);
 
-        if (i < 25) {
-          const map = {
-            venda:     ['tv','À venda'],
-            encomenda: ['te','Encomenda'],
-            esgotado:  ['tx','Esgotado'],
-          };
-          const [cls, lbl] = map[p.estoque.tipo] || ['te','—'];
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td style="color:var(--muted)">${i+1}</td>
-            <td title="${p.nome}">${p.nome}</td>
-            <td>R$ ${p.preco}</td>
-            <td>${p.precoPromo ? 'R$ '+p.precoPromo : '<span style="color:var(--muted)">—</span>'}</td>
-            <td><span class="tag ${cls}">${lbl}</span></td>
-            <td style="color:var(--muted)">${p.webCode}</td>
-          `;
-          tbody.appendChild(tr);
-        }
+      log(`✓ ${produtos.length} produto(s) prontos para exportar`, 'ok');
+      if (esgotado > 0)
+        log(`ℹ  ${esgotado} esgotado(s) → Exibir na loja = NAO`, 'warn');
+      log('ℹ  Categorias, Descrição e Tags em branco — complete na Nuvemshop', 'warn');
+
+      // Preview
+      const tbody = document.getElementById('previewBody');
+      const map   = { venda:['tv','À venda'], encomenda:['te','Encomenda'], esgotado:['tx','Esgotado'] };
+
+      produtos.slice(0, 25).forEach((p, i) => {
+        const [cls, lbl] = map[p.estoque.tipo] || ['te','—'];
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="color:var(--muted)">${i+1}</td>
+          <td title="${p.nome}">${p.nome}</td>
+          <td>R$ ${p.preco}</td>
+          <td>${p.precoPromo ? 'R$ '+p.precoPromo : '<span style="color:var(--muted)">—</span>'}</td>
+          <td><span class="tag ${cls}">${lbl}</span></td>
+          <td style="color:var(--muted)">${p.webCode}</td>
+        `;
+        tbody.appendChild(tr);
       });
 
       if (produtos.length > 25) {
         const tr = document.createElement('tr');
         tr.className = 'more-row';
-        tr.innerHTML = `<td colspan="6">+ ${produtos.length - 25} produtos adicionais no CSV</td>`;
+        tr.innerHTML = `<td colspan="6">+ ${produtos.length - 25} produtos adicionais no arquivo</td>`;
         tbody.appendChild(tr);
       }
 
-      csvContent = '\uFEFF' + linhas.join('\r\n');
-
-      pf.style.width = '100%';
-      setTimeout(() => { pb.style.display = 'none'; pf.style.width = '0%'; }, 500);
-
-      log(`✓ CSV gerado com ${produtos.length} linha(s)`, 'ok');
-      if (esgotado > 0)
-        log(`ℹ  ${esgotado} produto(s) esgotado(s) → Exibir na loja = NAO`, 'warn');
-      log('ℹ  Categorias, Descrição e Tags estão em branco — complete na Nuvemshop', 'warn');
-
       document.getElementById('tableWrapper').style.display = 'block';
-      document.getElementById('btnDownload').style.display  = 'block';
+      document.getElementById('btnXlsx').style.display      = 'block';
+      document.getElementById('btnCsv').style.display       = 'block';
       document.getElementById('resultCard').style.display   = 'block';
       document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
       btn.disabled = false;
-      btn.textContent = '⚡ Extrair produtos e gerar CSV';
+      btn.textContent = '⚡ Extrair produtos';
     }, 80);
   }
 
-  /* ── DOWNLOAD ── */
+  /* ── DOWNLOAD XLSX ── */
+  function baixarXLSX() {
+    if (!wsData.length) return;
+
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+    // Larguras de coluna
+    ws['!cols'] = [
+      {wch:40},  // Identificador URL
+      {wch:50},  // Nome
+      {wch:20},  // Categorias
+      {wch:12},  // Preço
+      {wch:16},  // Preço promo
+      {wch:8},   // Peso
+      {wch:8},   // Altura
+      {wch:8},   // Largura
+      {wch:12},  // Comprimento
+      {wch:10},  // Estoque
+      {wch:12},  // SKU
+      {wch:14},  // Exibir
+      {wch:13},  // Frete
+      {wch:30},  // Descrição
+      {wch:20},  // Marca
+      {wch:14},  // Produto físico
+      {wch:40},  // SEO título
+      {wch:30},  // SEO desc
+      {wch:20},  // Tags
+    ];
+
+    XLSX.utils.book_append_sheet(wb, ws, 'Produtos');
+    XLSX.writeFile(wb, 'produtos-nuvemshop.xlsx');
+  }
+
+  /* ── DOWNLOAD CSV ── */
   function baixarCSV() {
+    if (!csvContent) return;
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement('a');
