@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Elo7 → Nuvemshop | Migrador de Catálogo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0e0d;
+    --surface: #171614;
+    --surface2: #1e1c1a;
+    --border: #2a2825;
+    --border2: #3a3835;
+    --accent: #e8642a;
+    --accent-dim: #7a3415;
+    --accent2: #f0a500;
+    --accent2-dim: #7a5200;
+    --text: #f0ede8;
+    --text2: #b8b3ac;
+    --muted: #6a6560;
+    --success: #4caf7d;
+    --success-dim: #1e4f36;
+    --error: #e05c5c;
+    --error-dim: #5c2020;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── NOISE TEXTURE ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 999;
+    opacity: 0.4;
+  }
+
+  /* ── LAYOUT ── */
+  .page-wrapper {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── HERO ── */
+  .hero {
+    margin-bottom: 48px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+
+  .hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  .hero-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 1px;
+    background: var(--accent);
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: clamp(32px, 6vw, 52px);
+    line-height: 1;
+    letter-spacing: -2px;
+    color: var(--text);
+    margin-bottom: 12px;
+  }
+
+  .hero h1 .slash {
+    color: var(--accent);
+    margin: 0 6px;
+  }
+
+  .hero h1 .dest {
+    color: var(--accent2);
+  }
+
+  .hero-sub {
+    font-size: 13px;
+    color: var(--text2);
+    max-width: 480px;
+    line-height: 1.7;
+  }
+
+  .hero-flow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+
+  .flow-pill {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    border-radius: 100px;
+    padding: 4px 12px;
+    font-size: 11px;
+    color: var(--text2);
+    letter-spacing: 0.3px;
+  }
+
+  .flow-pill.accent { border-color: var(--accent-dim); color: var(--accent); }
+  .flow-pill.accent2 { border-color: var(--accent2-dim); color: var(--accent2); }
+  .flow-pill.success { border-color: var(--success-dim); color: var(--success); }
+
+  .flow-arrow {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  /* ── CARDS ── */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 20px;
+    transition: border-color 0.2s;
+  }
+
+  .card:focus-within { border-color: var(--border2); }
+
+  .card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 18px;
+  }
+
+  .step-badge {
+    width: 28px;
+    height: 28px;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .step-badge.green { background: var(--success); }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text);
+    margin-bottom: 3px;
+  }
+
+  .card-sub {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* ── TABS ── */
+  .tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px;
+  }
+
+  .tab {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 7px 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.3px;
+    position: relative;
+  }
+
+  .tab.active {
+    background: var(--surface2);
+    color: var(--text);
+  }
+
+  .tab .dot {
+    display: inline-block;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--success);
+    margin-left: 5px;
+    vertical-align: middle;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .tab.filled .dot { opacity: 1; }
+
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── TEXTAREA ── */
+  textarea {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 14px;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.2s;
+    line-height: 1.6;
+    min-height: 120px;
+    caret-color: var(--accent);
+  }
+
+  textarea:focus { border-color: var(--accent); }
+  textarea::placeholder { color: var(--muted); font-style: italic; }
+
+  .hint {
+    margin-top: 10px;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .hint code {
+    background: var(--surface2);
+    border: 1px solid var(--border2);
+    padding: 1px 6px;
+    border-radius: 3px;
+    color: var(--accent2);
+    font-size: 10px;
+    font-family: 'DM Mono', monospace;
+  }
+
+  .hint a { color: var(--accent); text-decoration: none; }
+  .hint a:hover { text-decoration: underline; }
+
+  /* ── DEFAULTS GRID ── */
+  .defaults-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  @media (max-width: 600px) {
+    .defaults-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .field label {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .field input, .field select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    padding: 8px 10px;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+    -webkit-appearance: none;
+  }
+
+  .field input:focus, .field select:focus { border-color: var(--accent2); }
+  .field select { cursor: pointer; }
+  .field select option { background: var(--surface); }
+
+  /* ── BUTTONS ── */
+  .btn-run {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 15px;
+    padding: 16px;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
+    margin-top: 4px;
+    box-shadow: 0 4px 20px rgba(232, 100, 42, 0.2);
+  }
+
+  .btn-run:hover {
+    background: #d45520;
+    box-shadow: 0 4px 28px rgba(232, 100, 42, 0.35);
+  }
+
+  .btn-run:active { transform: scale(0.995); }
+
+  .btn-run:disabled {
+    background: var(--muted);
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+  .btn-download {
+    width: 100%;
+    background: transparent;
+    color: var(--success);
+    border: 1px solid var(--success);
+    border-radius: 6px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 14px;
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: all 0.2s;
+    margin-top: 16px;
+    display: none;
+  }
+
+  .btn-download:hover {
+    background: var(--success);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(76, 175, 125, 0.25);
+  }
+
+  /* ── RESULT CARD ── */
+  #resultCard { display: none; }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .stat-cell {
+    background: var(--bg);
+    padding: 16px 12px;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 28px;
+    line-height: 1;
+    color: var(--accent2);
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  .stat-num.green { color: var(--success); }
+  .stat-num.orange { color: var(--accent2); }
+  .stat-num.red { color: var(--error); }
+
+  .stat-lbl {
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* ── LOG ── */
+  .log-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 12px 14px;
+    font-size: 11px;
+    max-height: 140px;
+    overflow-y: auto;
+    line-height: 2;
+    display: none;
+    margin-bottom: 16px;
+  }
+
+  .log-box::-webkit-scrollbar { width: 4px; }
+  .log-box::-webkit-scrollbar-track { background: transparent; }
+  .log-box::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  .log-ok  { color: var(--success); }
+  .log-warn { color: var(--accent2); }
+  .log-err { color: var(--error); }
+  .log-info { color: var(--text2); }
+
+  /* ── PREVIEW TABLE ── */
+  .table-wrapper {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    display: none;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+  }
+
+  thead th {
+    background: var(--surface2);
+    color: var(--muted);
+    text-align: left;
+    padding: 8px 12px;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+    font-size: 10px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody td {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text2);
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--surface2); color: var(--text); }
+
+  .tag { font-size: 10px; padding: 2px 8px; border-radius: 100px; font-family: 'DM Mono'; }
+  .tag-venda    { background: var(--success-dim); color: var(--success); }
+  .tag-encomenda { background: var(--accent2-dim); color: var(--accent2); }
+  .tag-esgotado { background: var(--error-dim); color: var(--error); }
+
+  .more-row td {
+    text-align: center;
+    color: var(--muted);
+    font-style: italic;
+    padding: 10px;
+  }
+
+  /* ── FOOTER ── */
+  .footer {
+    margin-top: 60px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 2;
+  }
+
+  .footer a { color: var(--accent); text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+
+  /* ── SCROLLBAR ── */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 20px 0;
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress-bar {
+    height: 2px;
+    background: var(--border);
+    border-radius: 1px;
+    overflow: hidden;
+    margin-bottom: 20px;
+    display: none;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 1px;
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-wrapper">
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="hero-eyebrow">Ferramenta de Migração</div>
+    <h1>Elo7<span class="slash">/</span><span class="dest">Nuvemshop</span></h1>
+    <p class="hero-sub">
+      Cole o código-fonte das páginas da sua lista de produtos da Elo7 e gere automaticamente um CSV pronto para importar na Nuvemshop.
+    </p>
+    <div class="hero-flow">
+      <span class="flow-pill accent">HTML da Elo7</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-pill">Extração automática</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-pill accent2">CSV formatado</span>
+      <span class="flow-arrow">→</span>
+      <span class="flow-pill success">Nuvemshop</span>
+    </div>
+  </header>
+
+  <!-- PASSO 1 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="step-badge">1</div>
+      <div>
+        <div class="card-title">Cole o HTML das páginas de produtos</div>
+        <div class="card-sub">Até 3 páginas — repita o processo para cada uma</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" id="tab-btn-1" onclick="switchTab(1)">
+        Página 1 <span class="dot" id="dot1"></span>
+      </button>
+      <button class="tab" id="tab-btn-2" onclick="switchTab(2)">
+        Página 2 <span class="dot" id="dot2"></span>
+      </button>
+      <button class="tab" id="tab-btn-3" onclick="switchTab(3)">
+        Página 3 <span class="dot" id="dot3"></span>
+      </button>
+    </div>
+
+    <div class="tab-panel active" id="panel1">
+      <textarea id="html1" rows="7"
+        placeholder="Cole aqui o código-fonte da página 1..."
+        oninput="markTab(1)"></textarea>
+    </div>
+    <div class="tab-panel" id="panel2">
+      <textarea id="html2" rows="7"
+        placeholder="Cole aqui o código-fonte da página 2 (opcional)..."
+        oninput="markTab(2)"></textarea>
+    </div>
+    <div class="tab-panel" id="panel3">
+      <textarea id="html3" rows="7"
+        placeholder="Cole aqui o código-fonte da página 3 (opcional)..."
+        oninput="markTab(3)"></textarea>
+    </div>
+
+    <div class="hint">
+      <strong style="color:var(--text2)">Como obter o código-fonte:</strong><br>
+      Acesse sua lista de produtos da Elo7 →
+      <code>Ctrl+U</code> (abre o fonte) →
+      <code>Ctrl+A</code> para selecionar tudo →
+      <code>Ctrl+C</code> para copiar → cole aqui.<br>
+      Para a página 2, adicione <code>&pageNum=2</code> no endereço antes de repetir.
+    </div>
+  </div>
+
+  <!-- PASSO 2 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="step-badge">2</div>
+      <div>
+        <div class="card-title">Valores padrão</div>
+        <div class="card-sub">Aplicados em todos os produtos — você edita depois na Nuvemshop</div>
+      </div>
+    </div>
+
+    <div class="defaults-grid">
+      <div class="field">
+        <label>Peso padrão (kg)</label>
+        <input type="number" id="dPeso" value="0.5" step="0.1" min="0.01">
+      </div>
+      <div class="field">
+        <label>Altura (cm)</label>
+        <input type="number" id="dAltura" value="10" step="1" min="1">
+      </div>
+      <div class="field">
+        <label>Largura (cm)</label>
+        <input type="number" id="dLargura" value="20" step="1" min="1">
+      </div>
+      <div class="field">
+        <label>Comprimento (cm)</label>
+        <input type="number" id="dComprimento" value="30" step="1" min="1">
+      </div>
+      <div class="field">
+        <label>Marca</label>
+        <input type="text" id="dMarca" value="Aline Callai Art" placeholder="Nome da loja">
+      </div>
+      <div class="field">
+        <label>Produto físico</label>
+        <select id="dFisico">
+          <option value="SIM">SIM</option>
+          <option value="NAO">NAO</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Frete grátis</label>
+        <select id="dFrete">
+          <option value="NAO">NAO</option>
+          <option value="SIM">SIM</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Exibir na loja</label>
+        <select id="dExibir">
+          <option value="SIM">SIM</option>
+          <option value="NAO">NAO</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="hint">
+      <strong style="color:var(--text2)">Dica:</strong>
+      Produtos <strong style="color:var(--error)">Esgotados</strong> serão importados com <code>Exibir na loja = NAO</code> automaticamente.<br>
+      Produtos <strong style="color:var(--accent2)">Sob encomenda</strong> serão importados com estoque <code>-</code> (infinito).<br>
+      Campos como <strong>Descrição</strong>, <strong>Categorias</strong> e <strong>Tags</strong> ficam em branco — complete depois na Nuvemshop.
+    </div>
+  </div>
+
+  <!-- BOTÃO -->
+  <div class="progress-bar" id="progressBar">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+
+  <button class="btn-run" id="btnRun" onclick="processar()">
+    ⚡ Extrair produtos e gerar CSV
+  </button>
+
+  <!-- RESULTADO -->
+  <div class="card" id="resultCard" style="margin-top:20px;">
+    <div class="card-header">
+      <div class="step-badge green">3</div>
+      <div>
+        <div class="card-title">Resultado</div>
+        <div class="card-sub">Preview dos primeiros 25 produtos extraídos</div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-cell">
+        <span class="stat-num" id="sTotal">—</span>
+        <span class="stat-lbl">Total</span>
+      </div>
+      <div class="stat-cell">
+        <span class="stat-num green" id="sVenda">—</span>
+        <span class="stat-lbl">À venda</span>
+      </div>
+      <div class="stat-cell">
+        <span class="stat-num orange" id="sEncomenda">—</span>
+        <span class="stat-lbl">Encomenda</span>
+      </div>
+      <div class="stat-cell">
+        <span class="stat-num red" id="sEsgotado">—</span>
+        <span class="stat-lbl">Esgotados</span>
+      </div>
+    </div>
+
+    <div class="log-box" id="logBox"></div>
+
+    <div class="table-wrapper" id="tableWrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Nome do produto</th>
+            <th>Preço</th>
+            <th>Promo</th>
+            <th>Estoque</th>
+            <th>SKU (webCode)</th>
+          </tr>
+        </thead>
+        <tbody id="previewBody"></tbody>
+      </table>
+    </div>
+
+    <button class="btn-download" id="btnDownload" onclick="baixarCSV()">
+      ⬇ Baixar CSV — pronto para Nuvemshop
+    </button>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    Feito com ♥ para a migração da Elo7 → Nuvemshop<br>
+    Tudo roda no seu browser — nenhum dado é enviado para servidores.<br>
+    <span style="color: var(--border2)">——</span><br>
+    Após importar o CSV, adicione as fotos via
+    <a href="https://www.nuvemshop.com.br/loja-aplicativos-nuvem" target="_blank" rel="noopener">app Automágico</a>
+    ou manualmente pelo painel.
+  </footer>
+
+</div><!-- /page-wrapper -->
+
+<script>
+  /* ─────────────────────────────────────────
+     STATE
+  ───────────────────────────────────────── */
+  let produtos = [];
+  let csvContent = '';
+
+  /* ─────────────────────────────────────────
+     TABS
+  ───────────────────────────────────────── */
+  function switchTab(n) {
+    [1, 2, 3].forEach(i => {
+      document.getElementById(`tab-btn-${i}`).classList.toggle('active', i === n);
+      document.getElementById(`panel${i}`).classList.toggle('active', i === n);
+    });
+  }
+
+  function markTab(n) {
+    const val = document.getElementById(`html${n}`).value.trim();
+    document.getElementById(`tab-btn-${n}`).classList.toggle('filled', val.length > 0);
+  }
+
+  /* ─────────────────────────────────────────
+     LOG
+  ───────────────────────────────────────── */
+  function log(msg, type = 'info') {
+    const box = document.getElementById('logBox');
+    box.style.display = 'block';
+    const d = document.createElement('div');
+    d.className = `log-${type}`;
+    d.textContent = msg;
+    box.appendChild(d);
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function clearLog() {
+    const box = document.getElementById('logBox');
+    box.innerHTML = '';
+    box.style.display = 'none';
+  }
+
+  /* ─────────────────────────────────────────
+     HELPERS
+  ───────────────────────────────────────── */
+  function slugify(str) {
+    return str
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .substring(0, 80);
+  }
+
+  function parsePreco(txt) {
+    if (!txt) return '';
+    return txt
+      .replace('R$', '')
+      .replace(/\s/g, '')
+      .replace(/\./g, '')
+      .replace(',', '.')
+      .trim();
+  }
+
+  function parseEstoque(cell) {
+    const t = cell.textContent.toLowerCase();
+    if (t.includes('esgotado')) return { val: '0', tipo: 'esgotado' };
+    if (t.includes('sob encomenda')) return { val: '-', tipo: 'encomenda' };
+    const m = t.match(/(\d+)\s*unidade/);
+    if (m) return { val: m[1], tipo: 'venda' };
+    return { val: '-', tipo: 'encomenda' };
+  }
+
+  /* ─────────────────────────────────────────
+     PARSER
+  ───────────────────────────────────────── */
+  function extrair(html) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const rows = doc.querySelectorAll('table.striped-table tbody tr');
+    const result = [];
+
+    rows.forEach(row => {
+      try {
+        const linkEl = row.querySelector('a.link-product');
+        if (!linkEl) return;
+
+        const nome = (linkEl.getAttribute('title') || linkEl.textContent).trim();
+        const href = linkEl.getAttribute('href') || '';
+
+        const slugMatch = href.match(/^\/([^/]+)\/dp\//);
+        const slug = slugMatch ? slugMatch[1] : slugify(nome);
+
+        const wcMatch = href.match(/\/dp\/([A-Z0-9]+)/);
+        const webCode = wcMatch ? wcMatch[1] : '';
+
+        const imgEl = row.querySelector('img.image-product');
+        const imgSrc = imgEl
+          ? ('https:' + imgEl.getAttribute('src').replace('90x90', '400x400'))
+          : '';
+
+        const precoEl    = row.querySelector('span.price');
+        const oldPrecoEl = row.querySelector('span.old-price');
+        const precoAtual = parsePreco(precoEl ? precoEl.textContent : '');
+        const precoOld   = parsePreco(oldPrecoEl ? oldPrecoEl.textContent : '');
+
+        // Se tem old-price: old = original, atual = promocional
+        const preco      = precoOld || precoAtual;
+        const precoPromo = precoOld ? precoAtual : '';
+
+        const tds = row.querySelectorAll('td');
+        const estoque = tds[1] ? parseEstoque(tds[1]) : { val: '-', tipo: 'encomenda' };
+
+        result.push({ nome, slug, webCode, imgSrc, preco, precoPromo, estoque });
+      } catch (_) {}
+    });
+
+    return result;
+  }
+
+  /* ─────────────────────────────────────────
+     MAIN
+  ───────────────────────────────────────── */
+  function processar() {
+    const btn = document.getElementById('btnRun');
+    btn.disabled = true;
+    btn.textContent = 'Processando...';
+
+    // Reset UI
+    clearLog();
+    document.getElementById('previewBody').innerHTML = '';
+    document.getElementById('tableWrapper').style.display = 'none';
+    document.getElementById('btnDownload').style.display = 'none';
+    document.getElementById('resultCard').style.display = 'none';
+
+    const pb = document.getElementById('progressBar');
+    const pf = document.getElementById('progressFill');
+    pb.style.display = 'block';
+    pf.style.width = '0%';
+
+    setTimeout(() => {
+      produtos = [];
+
+      const htmls = [
+        document.getElementById('html1').value,
+        document.getElementById('html2').value,
+        document.getElementById('html3').value,
+      ];
+
+      let paginas = 0;
+      htmls.forEach((html, i) => {
+        if (!html.trim()) return;
+        paginas++;
+        const ps = extrair(html);
+        log(`✓ Página ${i + 1}: ${ps.length} produto(s) encontrado(s)`, 'ok');
+        produtos.push(...ps);
+        pf.style.width = `${((i + 1) / 3) * 60}%`;
+      });
+
+      if (paginas === 0) {
+        log('⚠  Cole o código-fonte de pelo menos uma página para continuar.', 'err');
+        btn.disabled = false;
+        btn.textContent = '⚡ Extrair produtos e gerar CSV';
+        document.getElementById('resultCard').style.display = 'block';
+        pb.style.display = 'none';
+        return;
+      }
+
+      // Deduplica por webCode
+      const seen = new Set();
+      produtos = produtos.filter(p => {
+        if (!p.webCode || seen.has(p.webCode)) return false;
+        seen.add(p.webCode);
+        return true;
+      });
+
+      log(`→ Total único: ${produtos.length} produto(s)`, 'ok');
+      pf.style.width = '80%';
+
+      // Stats
+      let venda = 0, encomenda = 0, esgotado = 0;
+      produtos.forEach(p => {
+        if      (p.estoque.tipo === 'esgotado')  esgotado++;
+        else if (p.estoque.tipo === 'encomenda') encomenda++;
+        else                                     venda++;
+      });
+
+      document.getElementById('sTotal').textContent    = produtos.length;
+      document.getElementById('sVenda').textContent    = venda;
+      document.getElementById('sEncomenda').textContent = encomenda;
+      document.getElementById('sEsgotado').textContent = esgotado;
+
+      // Defaults
+      const peso        = document.getElementById('dPeso').value;
+      const altura      = document.getElementById('dAltura').value;
+      const largura     = document.getElementById('dLargura').value;
+      const comprimento = document.getElementById('dComprimento').value;
+      const marca       = document.getElementById('dMarca').value;
+      const fisico      = document.getElementById('dFisico').value;
+      const frete       = document.getElementById('dFrete').value;
+      const exibir      = document.getElementById('dExibir').value;
+
+      // CSV
+      const cols = [
+        'Identificador URL', 'Nome', 'Categorias',
+        'Preço', 'Preço promocional',
+        'Peso', 'Altura', 'Largura', 'Comprimento',
+        'Estoque', 'SKU',
+        'Exibir na loja', 'Frete grátis',
+        'Descrição', 'Marca', 'Produto físico',
+        'Título para SEO', 'Descrição para SEO', 'Tags'
+      ];
+
+      const esc = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+
+      const linhas = [cols.map(esc).join(',')];
+
+      const tbody = document.getElementById('previewBody');
+
+      produtos.forEach((p, i) => {
+        const exibirLoja = p.estoque.tipo === 'esgotado' ? 'NAO' : exibir;
+        const estoqueVal = p.estoque.val;
+
+        const row = [
+          p.slug, p.nome, '',
+          p.preco, p.precoPromo,
+          peso, altura, largura, comprimento,
+          estoqueVal, p.webCode,
+          exibirLoja, frete,
+          '', marca, fisico,
+          p.nome, '', ''
+        ];
+
+        linhas.push(row.map(esc).join(','));
+
+        // Preview (primeiros 25)
+        if (i < 25) {
+          const typeMap = {
+            venda:     ['tag-venda',     'À venda'],
+            encomenda: ['tag-encomenda', 'Encomenda'],
+            esgotado:  ['tag-esgotado',  'Esgotado'],
+          };
+          const [cls, lbl] = typeMap[p.estoque.tipo] || ['tag-encomenda', '—'];
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td style="color:var(--muted)">${i + 1}</td>
+            <td title="${p.nome}">${p.nome}</td>
+            <td>R$ ${p.preco}</td>
+            <td>${p.precoPromo ? 'R$ ' + p.precoPromo : '<span style="color:var(--muted)">—</span>'}</td>
+            <td><span class="tag ${cls}">${lbl}</span></td>
+            <td style="color:var(--muted)">${p.webCode}</td>
+          `;
+          tbody.appendChild(tr);
+        }
+      });
+
+      if (produtos.length > 25) {
+        const tr = document.createElement('tr');
+        tr.className = 'more-row';
+        tr.innerHTML = `<td colspan="6">+ ${produtos.length - 25} produtos adicionais no CSV</td>`;
+        tbody.appendChild(tr);
+      }
+
+      // BOM pra Excel/Google Sheets reconhecer UTF-8
+      csvContent = '\uFEFF' + linhas.join('\r\n');
+
+      pf.style.width = '100%';
+
+      setTimeout(() => {
+        pb.style.display = 'none';
+        pf.style.width = '0%';
+      }, 600);
+
+      log(`✓ CSV gerado — ${produtos.length} linhas`, 'ok');
+      if (esgotado > 0)
+        log(`ℹ  ${esgotado} produto(s) esgotado(s) → "Exibir na loja = NAO"`, 'warn');
+      log('ℹ  Campos em branco: Categorias, Descrição, Tags — complete na Nuvemshop', 'warn');
+
+      document.getElementById('tableWrapper').style.display = 'block';
+      document.getElementById('btnDownload').style.display = 'block';
+      document.getElementById('resultCard').style.display = 'block';
+
+      document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      btn.disabled = false;
+      btn.textContent = '⚡ Extrair produtos e gerar CSV';
+    }, 80);
+  }
+
+  /* ─────────────────────────────────────────
+     DOWNLOAD
+  ───────────────────────────────────────── */
+  function baixarCSV() {
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href     = url;
+    a.download = 'produtos-nuvemshop.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+</script>
+</body>
+</html>
